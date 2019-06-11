@@ -12,16 +12,16 @@ registry_dns_bind_port: "53"
 ## path configuration ##
 ########################
 # Common base dirs
-base_log_dir: "/var/log"
+base_log_dir: "/hadoop/log"
 base_tmp_dir: "/tmp"
 
 # Services base dirs
 hadoop_base_dir: "/hadoop"
 hdfs_data_base_dir: "/hadoop"
-kafka_log_base_dir: "/kafka-logs"
-nifi_repositories_base_dir: "/var/lib/nifi"
-ams_base_dir: "/var/lib"
-smartsense_base_dir: "/var/lib/smartsense"
+kafka_log_base_dir: "/hadoop/kafka-logs"
+nifi_repositories_base_dir: "{{ hadoop_base_dir }}/var/lib/nifi"
+ams_base_dir: "{{ hadoop_base_dir }}/var/lib"
+smartsense_base_dir: "{{ hadoop_base_dir }}/var/lib/smartsense"
 ranger_audit_hdfs_filespool_base_dir: "{{ base_log_dir }}"
 ranger_audit_solr_filespool_base_dir: "{{ base_log_dir }}"
 
@@ -37,14 +37,14 @@ yarn_nodemanager_log_dirs: "{{ hadoop_base_dir }}/yarn/log"
 yarn_timeline_leveldb_dir: "{{ hadoop_base_dir }}/yarn/timeline"
 
 # NiFi main dirs
-nifi_internal_dir: "/var/lib/nifi"
+nifi_internal_dir: "{{ hadoop_base_dir }}/var/lib/nifi"
 nifi_database_dir: "{{ nifi_internal_dir }}/database_repository"
 nifi_content_repository_dir: "{{ nifi_repositories_base_dir }}/content_repository"
 nifi_flowfile_repository_dir: "{{ nifi_repositories_base_dir }}/flowfile_repository"
 nifi_provenance_repository_dir: "{{ nifi_repositories_base_dir }}/provenance_repository"
 
 ## NiFi-Registry main dirs
-nifi_registry_internal_dir: "/var/lib/nifi-registry"
+nifi_registry_internal_dir: "{{ hadoop_base_dir }}/var/lib/nifi-registry"
 nifi_registry_database_dir: "{{ nifi_registry_internal_dir }}/database"
 
 # Other dirs
