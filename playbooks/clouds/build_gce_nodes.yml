@@ -1,23 +1,9 @@
 ---
 - set_fact: outer_loop="{{ item }}"
 
-- name: Create {{ outer_loop.host_group }} root disk(s)
-  gce_pd:
-    zone: "{{ cloud_config.zone }}"
-    name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}"
-    image: "{{ outer_loop.image }}"
-    disk_type: "{{ outer_loop.root_disk.type }}"
-    size_gb: "{{ outer_loop.root_disk.size }}"
-    mode: READ_WRITE
-    state: present
-  loop_control:
-    loop_var: local_loop
-  with_sequence: count="{{ outer_loop.count }}" format=-%02x
-  async: 1000
-  poll: 0
-  register: current_disks_async
+- include_tasks: build_gce_disks.yml
 
-- name: Wait for {{ outer_loop.host_group }} root disk(s) to be created
+- name: Wait for {{ outer_loop.host_group }} disk(s) to be created
   async_status:
     jid: "{{ local_loop.ansible_job_id }}"
   loop_control:
@@ -37,7 +23,9 @@
     subnetwork: "{{ cloud_config.subnet_name }}"
     external_ip: "{{ (outer_loop.public_ip|default(false)|bool == true) | ternary('ephemeral','none') }}"
     disks:
-      - "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}"
+      - "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}-os"
+      - name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}-data"
+        mode: READ_WRITE
     tags:
       - "cluster-{{ cluster_name }}"
       - "role-{{ outer_loop.host_group }}"
@@ -70,3 +58,5 @@
   loop_control:
     loop_var: local_loop
   with_items: '{{ current_nodes.results }}'
+
+- include_tasks: prepare_data_disks.yml

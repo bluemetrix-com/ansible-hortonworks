@@ -6,6 +6,11 @@ cloud_config:
   vpc_name: "{{ cluster_name }}-vpc"
   subnet_name: "{{ cluster_name }}-subnet"
   subnet_cidr: '10.132.0.0/20'
+  hdp_disks:
+    os: 50
+    master_data: 100
+    slave_data: 200
+    edge_data: 100
   admin_username: google-user
   ssh:
     privatekey: '~/.ssh/id_rsa'
@@ -27,24 +32,42 @@ nodes:
     image: rhel-7
     type: n1-standard-2
     public_ip: true
-    root_disk:
-      type: pd-ssd
-      size: 15
+    disks:
+      root:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.os }}"
+      data:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.master_data }}"
+        device: /dev/sdb
+        mountpoint: /hadoop
 
   - host_group: "hdp-slave"
     count: 2
     image: rhel-7
     type: n1-standard-1
     public_ip: true
-    root_disk:
-      type: pd-ssd
-      size: 15
+    disks:
+      root:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.os }}"
+      data:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.slave_data }}"
+        device: /dev/sdb
+        mountpoint: /hadoop
 
   - host_group: "hdp-edge"
     count: 0
     image: rhel-7
     type: n1-standard-1
     public_ip: true
-    root_disk:
-      type: pd-standard
-      size: 20
+    disks:
+      root:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.os }}"
+      data:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.edge_data }}"
+        device: /dev/sdb
+        mountpoint: /data
