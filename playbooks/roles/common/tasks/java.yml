@@ -11,6 +11,12 @@
     state: present
   when: java == "openjdk"
 
+- name: Link OpenJDK
+  file:
+    path: /hadoop/jdk
+    src: /etc/alternatives/jre_1.8.0_openjdk
+    state: link
+
 - block:
     - name: Create the {{ oraclejdk_options.base_folder }} directory
       file:
