@@ -199,10 +199,16 @@ blueprint_dynamic:                                        # properties for the d
       - ACTIVITY_ANALYZER
       - ACTIVITY_EXPLORER
       - HST_AGENT
-  - host_group: "hdp-slave"
+  - host_group: "hdp-data"
     clients: ['ZOOKEEPER_CLIENT', 'HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'HIVE_CLIENT', 'SPARK2_CLIENT']
     services:
       - DATANODE
+      - NODEMANAGER
+      - METRICS_MONITOR
+      - HST_AGENT
+  - host_group: "hdp-yarn"
+    clients: ['ZOOKEEPER_CLIENT', 'HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'HIVE_CLIENT', 'SPARK2_CLIENT']
+    services:
       - NODEMANAGER
       - METRICS_MONITOR
       - HST_AGENT

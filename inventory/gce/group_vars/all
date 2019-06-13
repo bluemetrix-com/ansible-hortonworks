@@ -43,8 +43,23 @@ nodes:
         device: /dev/sdb
         mountpoint: /hadoop
 
-  - host_group: "hdp-slave"
-    count: 2
+  - host_group: "hdp-data"
+    count: 1
+    image: rhel-7
+    type: n1-standard-1
+    public_ip: true
+    disks:
+      root:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.os }}"
+      data:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.slave_data }}"
+        device: /dev/sdb
+        mountpoint: /hadoop
+
+  - host_group: "hdp-yarn"
+    count: 1
     image: rhel-7
     type: n1-standard-1
     public_ip: true

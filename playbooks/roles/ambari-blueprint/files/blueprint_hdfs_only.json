@@ -26,12 +26,21 @@
   ],
   "host_groups" : [
     {
-      "name" : "hdp-slave",
+      "name" : "hdp-data",
       "configurations" : [ ],
       "components" : [
         { "name" : "ZOOKEEPER_CLIENT" },
         { "name" : "HDFS_CLIENT" },
         { "name" : "DATANODE" },
+        { "name" : "METRICS_MONITOR" }
+      ]
+    },
+    {
+      "name" : "hdp-yarn",
+      "configurations" : [ ],
+      "components" : [
+        { "name" : "ZOOKEEPER_CLIENT" },
+        { "name" : "HDFS_CLIENT" },
         { "name" : "METRICS_MONITOR" }
       ]
     },
