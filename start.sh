@@ -21,5 +21,5 @@ export CLOUD_TO_USE=gce
 
 # We just launch all the build scripts sequentally. 'set -e' will terminate this script if any of these commands fail
 
-$(dirname "${BASH_SOURCE[0]}")/build_cloud.sh
-$(dirname "${BASH_SOURCE[0]}")/install_cluster.sh
+$(dirname "${BASH_SOURCE[0]}")/build_cloud.sh "$@"
+$(dirname "${BASH_SOURCE[0]}")/install_cluster.sh "$@"
