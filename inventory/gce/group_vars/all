@@ -11,6 +11,7 @@ cloud_config:
     master_data: 100
     slave_data: 200
     edge_data: 100
+    repos_data: 200
   admin_username: google-user
   ssh:
     privatekey: '~/.ssh/id_rsa'
@@ -71,3 +72,18 @@ nodes:
         size: "{{ cloud_config.hdp_disks.edge_data }}"
         device: /dev/sdb
         mountpoint: /data
+
+  - host_group: "hdp-repos"
+    count: 1
+    image: rhel-7
+    type: n1-standard-1
+    public_ip: true
+    disks:
+      root:
+        type: pd-standard
+        size: 20
+      data:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.repos_data }}"
+        device: /dev/mapper/vg00-lv_pkg
+        mountpoint: /gbdspkg

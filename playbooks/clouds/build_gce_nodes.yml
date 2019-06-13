@@ -2,6 +2,10 @@
 - set_fact: outer_loop="{{ item }}"
 
 - include_tasks: build_gce_disks.yml
+  when: outer_loop.host_group != "hdp-repos"
+
+- include_tasks: build_gce_disks_snapshot.yml
+  when: outer_loop.host_group == "hdp-repos"
 
 - name: Wait for {{ outer_loop.host_group }} disk(s) to be created
   async_status:

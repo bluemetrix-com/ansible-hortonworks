@@ -7,6 +7,7 @@
     - name: Add nodes to the hadoop-cluster group and groups representing the host_groups
       include_tasks: "clouds/add_nodes_{{ cloud_name }}.yml"
       with_items: "{{ nodes|default(omit) }}"
+      when: item.host_group != "hdp-repos"
 
     - name: Initialize the ambari_groups list
       set_fact:

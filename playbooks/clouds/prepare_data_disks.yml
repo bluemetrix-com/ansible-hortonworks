@@ -9,6 +9,7 @@
   loop_control:
     loop_var: local_loop
   with_items: '{{ current_nodes.results }}'
+  when: outer_loop.host_group != "hdp-repos"
 
 - name: "Mount data filesystems for {{ outer_loop.host_group }}"
   delegate_to: "{{ (outer_loop.public_ip|default(false) == true) | ternary(local_loop.instance_data.0.public_ip,local_loop.instance_data.0.private_ip) }}"
@@ -22,3 +23,4 @@
   loop_control:
     loop_var: local_loop
   with_items: '{{ current_nodes.results }}'
+  when: outer_loop.host_group != "hdp-repos"
