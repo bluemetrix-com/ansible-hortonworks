@@ -22,17 +22,6 @@
         <unique>true</unique>
       </repo>
 {% endif %}
-{% if hdp_version is version_compare('2.6.4.0', '>=') %}
-      <repo>
-        <baseurl>{{ gpl_repo_url }}</baseurl>
-        <repoid>HDP-{{ hdp_minor_version }}-GPL</repoid>
-        <reponame>HDP-GPL</reponame>
-        <unique>true</unique>
-        <tags>
-          <tag>GPL</tag>
-        </tags>
-      </repo>
-{% endif %}
       <repo>
         <baseurl>{{ utils_repo_url }}</baseurl>
         <repoid>HDP-UTILS-{{ utils_version }}</repoid>
