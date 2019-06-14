@@ -1,0 +1,19 @@
+# TODO: We probably don't need this fact and can easily get the node name from node.instance_data.name instead
+
+- set_fact:
+    node_name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(node,'') }}{{ cloud_config.name_suffix|default('') }}"
+
+- set_fact:
+    nodes_disks: "{{ nodes_disks | combine({ node_name: [] }) }}"
+
+- debug:
+    var: nodes_disks
+
+- name: Get list of disks
+  set_fact:
+    nodes_disks: "{{ nodes_disks | combine ({node_name: nodes_disks[node_name] + [{ 'name': node_name + '-' + disk.key, 'mode': 'READ_WRITE' }]}) }}"
+  when: outer_loop.host_group == "hdp-repos" or disk.key == 'root'
+  loop_control:
+    loop_var: disk
+  with_items:
+    - "{{ outer_loop.disks | dict2items }}"
