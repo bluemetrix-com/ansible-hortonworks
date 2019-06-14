@@ -27,8 +27,6 @@ repo_base_url: "http://{{ cluster_name }}-hdp-repos"
 external_dns: yes                                         # set to yes to use the existing DNS (when no, it will update the /etc/hosts file - must be set to 'no' when using Azure)
 disable_firewall: no                                      # set to yes to disable the existing local firewall service (iptables, firewalld, ufw)
 timezone: UTC
-repos_os_snapshot: repo-os-snap1
-repos_data_snapshot: repo-disk-snap1
 
 ########################
 ## java configuration ##

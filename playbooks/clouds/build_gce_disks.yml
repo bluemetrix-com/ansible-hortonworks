@@ -1,10 +1,11 @@
-- name: Create {{ outer_loop.host_group }} root disk(s)
+- name: "Create {{ outer_loop.host_group }} {{ disk.key }} disk"
   gce_pd:
     zone: "{{ cloud_config.zone }}"
-    name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}-os"
-    image: "{{ outer_loop.image }}"
-    disk_type: "{{ outer_loop.disks.root.type }}"
-    size_gb: "{{ outer_loop.disks.root.size }}"
+    name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}-{{ disk.key }}"
+    image: "{{ outer_loop.image if disk.key == 'root' else '' }}"
+    disk_type: "{{ disk.value.type }}"
+    size_gb: "{{ disk.value.size }}"
+    instance_name: "{{ cluster_name + '-' + outer_loop.host_group + (outer_loop.count > 1) | ternary(local_loop,'') if disk.key != 'root' else '' }}"
     mode: READ_WRITE
     state: present
   loop_control:
@@ -14,7 +15,7 @@
   poll: 0
   register: current_disks_async
 
-- name: Wait for {{ outer_loop.host_group }} root disk(s) to be created
+- name: Wait for {{ outer_loop.host_group }} {{ disk.key }} disk to be created
   async_status:
     jid: "{{ local_loop.ansible_job_id }}"
   loop_control:
@@ -24,17 +25,27 @@
   until: current_disks.finished
   retries: 120
 
-- name: Create {{ outer_loop.host_group }} data disk(s)
-  gce_pd:
-    zone: "{{ cloud_config.zone }}"
-    name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}-data"
-    disk_type: "{{ outer_loop.disks.data.type }}"
-    size_gb: "{{ outer_loop.disks.data.size }}"
-    mode: READ_WRITE
-    state: present
+- name: "Build {{ disk.key }} filesystem for {{ outer_loop.host_group }}"
+  delegate_to: "{{ (outer_loop.public_ip|default(false) == true) | ternary(local_loop.instance_data.0.public_ip,local_loop.instance_data.0.private_ip) }}"
+  become: yes
+  filesystem:
+    dev: "/dev/disk/by-id/google-{{ node_name }}-{{ disk.key }}"
+    fstype: ext4
   loop_control:
     loop_var: local_loop
-  with_sequence: count="{{ outer_loop.count }}" format=-%02x
-  async: 1000
-  poll: 0
-  register: current_disks_async
+  with_items: '{{ current_nodes.results }}'
+  when: outer_loop.host_group != "hdp-repos" and disk.key != "root"
+
+- name: "Mount {{ disk.key }} filesystems for {{ outer_loop.host_group }}"
+  delegate_to: "{{ (outer_loop.public_ip|default(false) == true) | ternary(local_loop.instance_data.0.public_ip,local_loop.instance_data.0.private_ip) }}"
+  become: yes
+  mount:
+    src: "/dev/disk/by-id/google-{{ node_name }}-{{ disk.key }}"
+    fstype: ext4
+    opts: defaults,noatime,nodiratime
+    path: "{{ disk.value.mountpoint }}"
+    state: mounted
+  loop_control:
+    loop_var: local_loop
+  with_items: '{{ current_nodes.results }}'
+  when: outer_loop.host_group != "hdp-repos" and disk.key != "root"

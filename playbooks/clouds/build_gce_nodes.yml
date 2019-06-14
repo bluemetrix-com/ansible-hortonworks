@@ -2,22 +2,33 @@
 - set_fact: outer_loop="{{ item }}"
 
 - include_tasks: build_gce_disks.yml
-  when: outer_loop.host_group != "hdp-repos"
-
+  when: outer_loop.host_group != "hdp-repos" and disk.key == "root"
+  loop_control:
+    loop_var: disk
+  with_items:
+    - "{{ outer_loop.disks | dict2items }}"
 - include_tasks: build_gce_disks_snapshot.yml
   when: outer_loop.host_group == "hdp-repos"
-
-- name: Wait for {{ outer_loop.host_group }} disk(s) to be created
-  async_status:
-    jid: "{{ local_loop.ansible_job_id }}"
   loop_control:
-    loop_var: local_loop
-  with_items: "{{ current_disks_async.results }}"
-  register: current_disks
-  until: current_disks.finished
-  retries: 120
+    loop_var: disk
+  with_items:
+    - "{{ outer_loop.disks | dict2items }}"
 
-- name: Create {{ outer_loop.host_group }} node(s)
+- set_fact:
+    node_disks: []
+
+- set_fact:
+    node_name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}{{ cloud_config.name_suffix|default('') }}"
+
+- name: Get list of disks
+  set_fact:
+    node_disks: "{{ node_disks + [ { 'name': node_name + '-' + disk.key, 'mode': 'READ_WRITE' } ] }}"
+  when: outer_loop.host_group == "hdp-repos" or disk.key == 'root'
+  loop_control:
+    loop_var: disk
+  with_items: "{{ outer_loop.disks | dict2items }}"
+
+- name: "Create {{ outer_loop.host_group }} node(s)"
   gce:
     zone: "{{ cloud_config.zone }}"
     name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}{{ cloud_config.name_suffix|default('') }}"
@@ -26,10 +37,7 @@
     network: "{{ cloud_config.vpc_name }}"
     subnetwork: "{{ cloud_config.subnet_name }}"
     external_ip: "{{ (outer_loop.public_ip|default(false)|bool == true) | ternary('ephemeral','none') }}"
-    disks:
-      - "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}-os"
-      - name: "{{ cluster_name }}-{{ outer_loop.host_group }}{{ (outer_loop.count > 1) | ternary(local_loop,'') }}-data"
-        mode: READ_WRITE
+    disks: "{{ node_disks }}"
     tags:
       - "cluster-{{ cluster_name }}"
       - "role-{{ outer_loop.host_group }}"
@@ -63,4 +71,9 @@
     loop_var: local_loop
   with_items: '{{ current_nodes.results }}'
 
-- include_tasks: prepare_data_disks.yml
+- include_tasks: build_gce_disks.yml
+  when: outer_loop.host_group != "hdp-repos" and disk.key != "root"
+  loop_control:
+    loop_var: disk
+  with_items:
+    - "{{ outer_loop.disks | dict2items }}"

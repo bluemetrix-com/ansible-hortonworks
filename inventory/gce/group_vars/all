@@ -8,10 +8,10 @@ cloud_config:
   subnet_cidr: '10.132.0.0/20'
   hdp_disks:
     os: 50
-    master_data: 100
-    slave_data: 200
-    edge_data: 100
-    repos_data: 200
+    hadoop: 100
+    data: 200
+    upload: 100
+    repos: 200
   admin_username: google-user
   ssh:
     privatekey: '~/.ssh/id_rsa'
@@ -37,10 +37,9 @@ nodes:
       root:
         type: pd-standard
         size: "{{ cloud_config.hdp_disks.os }}"
-      data:
+      hadoop:
         type: pd-standard
-        size: "{{ cloud_config.hdp_disks.master_data }}"
-        device: /dev/sdb
+        size: "{{ cloud_config.hdp_disks.hadoop }}"
         mountpoint: /hadoop
 
   - host_group: "hdp-data"
@@ -52,11 +51,14 @@ nodes:
       root:
         type: pd-standard
         size: "{{ cloud_config.hdp_disks.os }}"
+      hadoop:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.hadoop }}"
+        mountpoint: /hadoop
       data:
         type: pd-standard
-        size: "{{ cloud_config.hdp_disks.slave_data }}"
-        device: /dev/sdb
-        mountpoint: /hadoop
+        size: "{{ cloud_config.hdp_disks.data }}"
+        mountpoint: /data/0
 
   - host_group: "hdp-yarn"
     count: 1
@@ -67,11 +69,14 @@ nodes:
       root:
         type: pd-standard
         size: "{{ cloud_config.hdp_disks.os }}"
+      hadoop:
+        type: pd-standard
+        size: "{{ cloud_config.hdp_disks.data }}"
+        mountpoint: /hadoop
       data:
         type: pd-standard
-        size: "{{ cloud_config.hdp_disks.slave_data }}"
-        device: /dev/sdb
-        mountpoint: /hadoop
+        size: "{{ cloud_config.hdp_disks.hadoop }}"
+        mountpoint: /data/0
 
   - host_group: "hdp-edge"
     count: 0
@@ -82,11 +87,10 @@ nodes:
       root:
         type: pd-standard
         size: "{{ cloud_config.hdp_disks.os }}"
-      data:
+      upload:
         type: pd-standard
-        size: "{{ cloud_config.hdp_disks.edge_data }}"
-        device: /dev/sdb
-        mountpoint: /data
+        size: "{{ cloud_config.hdp_disks.upload }}"
+        mountpoint: /upload/0
 
   - host_group: "hdp-repos"
     count: 1
@@ -97,8 +101,9 @@ nodes:
       root:
         type: pd-standard
         size: 20
+        snapshot: repo-os-snap1
       data:
         type: pd-standard
-        size: "{{ cloud_config.hdp_disks.repos_data }}"
-        device: /dev/mapper/vg00-lv_pkg
+        size: "{{ cloud_config.hdp_disks.repos }}"
+        snapshot: repo-disk-snap1
         mountpoint: /gbdspkg
