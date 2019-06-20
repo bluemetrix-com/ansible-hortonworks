@@ -532,7 +532,7 @@
         "dfs.datanode.data.dir" : "{{ hdfs_dfs_datanode_data_dir }}",
         "nfs.file.dump.dir": "{{ nfs_file_dump_dir }}",
         "dfs.datanode.failed.volumes.tolerated" : "0",
-        "dfs.replication" : "3"
+        "dfs.replication" : "{{ 3 if groups["hdp-data"]|length > 2 else groups["hdp-data"]|length }}"
       }
     },
     {
