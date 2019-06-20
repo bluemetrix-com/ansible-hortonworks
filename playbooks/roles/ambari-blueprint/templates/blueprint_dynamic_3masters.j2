@@ -1,5 +1,11 @@
 {
   "configurations" : [
+    {
+      "cluster-env" : {
+        "smokeuser" : "{{ hdp_users_prefix }}ambari-qa",
+        "user_group" : "{{ hdp_groups_prefix }}hadoop",
+      }
+    },
 {% if security|lower != "none" %}
     {
       "kerberos-env": {
@@ -409,8 +415,8 @@
     },
     {
       "nifi-env" : {
-        "nifi_group" : "nifi",
-        "nifi_user" : "nifi",
+        "nifi_group" : {{ hdp_groups_prefix }}"nifi",
+        "nifi_user" : "{{ hdp_users_prefix }}nifi",
         "nifi_node_log_dir" : "{{ base_log_dir }}/nifi"
       }
     },
@@ -489,6 +495,7 @@
 {% if namenode_groups|length > 0 %}
     {
       "hadoop-env" : {
+        "hdfs_user" : "{{ hdp_users_prefix }}hdfs",
         "dtnode_heapsize" : "1024m",
         "namenode_heapsize" : "2048m",
         "namenode_opt_maxnewsize" : "384m",
@@ -533,7 +540,7 @@
 {% if 'YARN_REGISTRY_DNS' in blueprint_all_services %}
         "registry.dns.bind-port": "{{ registry_dns_bind_port | default('53') }}",
 {% endif %}
-        "yarn_user" : "yarn",
+        "yarn_user" : "{{ hdp_users_prefix }}yarn",
         "yarn_log_dir_prefix" : "{{ base_log_dir }}/hadoop-yarn"
       }
     },
@@ -627,6 +634,8 @@
     },
     {
       "hive-env" : {
+        "webhcat_user" : "{{ hdp_users_prefix }}hcat",
+        "hcat_user" : "{{ hdp_users_prefix }}hcat",
         {% if database != "embedded" -%}
         {% if database == "mysql" or database == "mariadb" -%}
         "hive_database": "Existing MySQL / MariaDB Database",
@@ -644,7 +653,7 @@
 {% if 'ATLAS_SERVER' in blueprint_all_services %}
         "hive.atlas.hook": "true",
 {% endif %}
-        "hive_user" : "hive",
+        "hive_user" : "{{ hdp_users_prefix }}hive",
         "hive_log_dir" : "{{ base_log_dir }}/hive",
         "hcat_log_dir" : "{{ base_log_dir }}/webhcat",
         "heap_dump_location" : "{{ heap_dump_location }}"
@@ -655,7 +664,7 @@
 {% if 'ATLAS_SERVER' in blueprint_all_services %}
         "sqoop.atlas.hook" : "true",
 {% endif %}
-        "sqoop_user" : "sqoop"
+        "sqoop_user" : "{{ hdp_users_prefix }}sqoop"
       }
     },
 {% if druid_hosts|length > 0 %}
@@ -718,7 +727,7 @@
     {
       "druid-env" : {
         "druid_log_dir": "{{ base_log_dir }}/druid",
-        "druid_user": "druid"
+        "druid_user": "{{ hdp_users_prefix }}druid"
       }
     },
 {% endif %}
@@ -788,7 +797,7 @@
         "oozie_database": "Existing PostgreSQL Database",
         {% endif -%}
         {% endif -%}
-        "oozie_user" : "oozie",
+        "oozie_user" : "{{ hdp_users_prefix }}oozie",
         "oozie_log_dir" : "{{ base_log_dir }}/oozie",
         "oozie_data_dir" : "{{ oozie_data_dir }}",
         "oozie_tmp_dir" : "{{ base_tmp_dir }}/oozie"
@@ -842,6 +851,7 @@
     },
     {
       "mapred-env" : {
+        "mapred_user" : "{{ hdp_users_prefix }}mapred",
         "mapred_log_dir_prefix" : "{{ base_log_dir }}/hadoop-mapreduce"
       }
     },
@@ -860,17 +870,22 @@
 {% if 'SPARK2_JOBHISTORYSERVER' in blueprint_all_services %}
     {
       "spark2-env" : {
+        "spark_user" : "{{ hdp_users_prefix }}spark",
+        "spark_group" : "{{ hdp_groups_prefix }}spark",
         "spark_log_dir" : "{{ base_log_dir }}/spark2"
       }
     },
     {
       "livy2-env" : {
+        "livy2_user" : "{{ hdp_users_prefix }}livy",
+        "livy2_group" : "{{ hdp_groups_prefix }}livy",
         "livy2_log_dir" : "{{ base_log_dir }}/livy2"
       }
     },
 {% endif %}
     {
       "tez-env" : {
+        "tez_user" : "{{ hdp_users_prefix }}tez",
         "heap_dump_location" : "{{ heap_dump_location }}"
       }
     },
@@ -916,7 +931,7 @@
         "atlas.kafka.zookeeper.connect": "{% for zk in zookeeper_groups %}%HOSTGROUP::{{ zk }}%:2181{% if not loop.last %},{% endif %}{% endfor %}",
         "atlas.kafka.bootstrap.servers": "{% for k in kafka_groups %}%HOSTGROUP::{{ k }}%:6667{% if not loop.last %},{% endif %}{% endfor %}",
         "atlas.rest.address": "{% for at in atlas_hosts %}http://{{ hostvars[at]['ansible_fqdn'] }}:21000{% if not loop.last %},{% endif %}{% endfor %}",
-        "atlas.proxyusers": "knox"
+        "atlas.proxyusers": "{{ hdp_users_prefix }}knox"
       }
     },
 {% endif %}
@@ -988,8 +1003,8 @@
     {
       "knox-env" : {
         "knox_master_secret": "{{ knox_security_options.master_secret }}",
-        "knox_user": "knox",
-        "knox_group": "knox"
+        "knox_user": "{{ hdp_users_prefix }}knox",
+        "knox_group": "{{ hdp_groups_prefix }}knox"
       }
     },
 {% endif %}
@@ -997,8 +1012,8 @@
     {
       "zeppelin-env" : {
         "zeppelin_log_dir": "{{ base_log_dir }}/zeppelin",
-        "zeppelin_user": "zeppelin",
-        "zeppelin_group": "zeppelin"
+        "zeppelin_user": "{{ hdp_users_prefix }}zeppelin",
+        "zeppelin_group": "{{ hdp_groups_prefix }}zeppelin"
       }
     },
 {% endif %}
@@ -1006,7 +1021,7 @@
     {
       "accumulo-env" : {
         "accumulo_log_dir" : "{{ base_log_dir }}/accumulo",
-        "accumulo_user": "accumulo"
+        "accumulo_user": "{{ hdp_users_prefix }}accumulo"
       }
     },
 {% endif %}
@@ -1015,8 +1030,8 @@
       "solr-config-env" : {
         "solr_config_log_dir": "{{ base_log_dir }}/solr",
         "solr_config_service_log_dir": "{{ base_log_dir }}/service_solr",
-        "solr_config_group": "solr",
-        "solr_config_user": "solr"
+        "solr_config_group": "{{ hdp_groups_prefix }}solr",
+        "solr_config_user": "{{ hdp_users_prefix }}solr"
       }
     },
 {% endif %}
@@ -1028,6 +1043,7 @@
     },
     {
       "ams-env" : {
+        "ambari_metrics_user" : "{{ hdp_users_prefix }}ams",
         "metrics_collector_log_dir" : "{{ base_log_dir }}/ambari-metrics-collector",
         "metrics_monitor_log_dir" : "{{ base_log_dir }}/ambari-metrics-monitor"
       }
@@ -1051,6 +1067,7 @@
     },
     {
       "zookeeper-env" : {
+        "zk_user" : "{{ hdp_users_prefix }}zookeeper",
         "zk_log_dir" : "{{ base_log_dir }}/zookeeper"
       }
     },

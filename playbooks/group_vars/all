@@ -19,6 +19,9 @@ hdpsearch_build_number: '400'                             # the HDP Search build
 
 repo_base_url: "http://{{ cluster_name }}-hdp-repos"
 
+hdp_users_prefix: "{{ cluster_name }}-"
+hdp_groups_prefix: "{{ cluster_name }}-app-"
+
 
 ###########################
 ## general configuration ##
