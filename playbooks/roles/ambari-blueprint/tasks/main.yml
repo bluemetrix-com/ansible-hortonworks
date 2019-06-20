@@ -53,12 +53,12 @@
 - name: Generate the cluster dynamic blueprint
   set_fact:
     cluster_blueprint: "{{ lookup('template', blueprint_file, convert_data=False) }}"
-  when: blueprint_file == 'blueprint_dynamic.j2'
+  when: blueprint_file.endswith('.j2')
 
 - name: Generate the cluster static blueprint
   set_fact:
     cluster_blueprint: "{{ lookup('file', blueprint_file, convert_data=False) }}"
-  when: blueprint_file != 'blueprint_dynamic.j2'
+  when: not blueprint_file.endswith('.j2')
 
 - name: Print the cluster blueprint
   debug:

@@ -9,7 +9,7 @@ ambari_version: '2.6.2.0'                                 # must be the 4-part f
 ambari_build_number: '155'
 
 hdp_version: '2.6.5.0'                                    # must be the 4-part full version number
-hdp_build_number: '292'                                  # the HDP build number from docs.hortonworks.com (if set to 'auto', Ansible will try to get it from the repository)
+hdp_build_number: '292'                                   # the HDP build number from docs.hortonworks.com (if set to 'auto', Ansible will try to get it from the repository)
 
 hdf_version: '3.4.1.1'                                    # must be the 4-part full version number
 hdf_build_number: 'auto'                                  # the HDF build number from docs.hortonworks.com (if set to 'auto', Ansible will try to get it from the repository)
@@ -32,9 +32,9 @@ timezone: UTC
 ## java configuration ##
 ########################
 
-java: 'openjdk'                                          # can be set to 'embedded', 'openjdk' or 'oraclejdk'
+java: 'openjdk'                                           # can be set to 'embedded', 'openjdk' or 'oraclejdk'
 oraclejdk_options:                                        # only used when java is set to 'oraclejdk'
-  base_folder: '/hadoop/jdk'                                # the folder where the Java package should be unpacked to
+  base_folder: '/hadoop/jdk'                              # the folder where the Java package should be unpacked to
   tarball_location: '/tmp/jdk-8u181-linux-x64.tar.gz'     # the location of the tarball on the remote system or on the Ansible controller
   jce_location: '/tmp/jce_policy-8.zip'                   # the location of the JCE package on the remote system or on the Ansible controller
   remote_files: no                                        # set to yes to indicate the files are already on the remote systems, otherwise they will be copied by Ansible from the Ansible controller
@@ -156,9 +156,9 @@ smartsense:                                               # Hortonworks subscrip
 
 wait: true                                                # wait for the cluster to finish installing
 wait_timeout: 3600                                        # 60 minutes
-accept_gpl: no                                           # set to yes to allow Ambari to install GPL licensed libraries
+accept_gpl: no                                            # set to yes to allow Ambari to install GPL licensed libraries
 
-cluster_template_file: 'cluster_template.j2'              # the cluster creation template file
+cluster_template_file: 'cluster_template_3masters.j2'     # the cluster creation template file
 
 
 ###########################
@@ -174,42 +174,46 @@ base_tmp_dir: '/tmp'
 #############################
 
 blueprint_name: '{{ cluster_name }}_blueprint'            # the name of the blueprint as it will be stored in Ambari
-blueprint_file: 'blueprint_dynamic.j2'                    # the blueprint JSON file - 'blueprint_dynamic.j2' is a Jinja2 template that generates the required JSON
+blueprint_file: 'blueprint_dynamic_3masters.j2'           # the blueprint JSON file - 'blueprint_dynamic.j2' is a Jinja2 template that generates the required JSON
 blueprint_dynamic:                                        # properties for the dynamic blueprint - these are only used by the 'blueprint_dynamic.j2' template to generate the JSON
-  - host_group: "hdp-master"
+  - host_group: "hdp-master-common"
     clients: ['ZOOKEEPER_CLIENT', 'HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'SQOOP', 'HIVE_CLIENT', 'SPARK2_CLIENT']
     services:
       - ZOOKEEPER_SERVER
-      - NAMENODE
-      - SECONDARY_NAMENODE
-      - RESOURCEMANAGER
-      - APP_TIMELINE_SERVER
-      - HISTORYSERVER
-      - SPARK2_JOBHISTORYSERVER
-      - HIVE_SERVER
-      - HIVE_METASTORE
-      - WEBHCAT_SERVER
+      - METRICS_MONITOR
+  - host_group: "hdp-master"
+    clients: []
+    services:
       - AMBARI_SERVER
       - METRICS_COLLECTOR
       - METRICS_GRAFANA
-      - METRICS_MONITOR
-      - HST_SERVER
-      - ACTIVITY_ANALYZER
-      - ACTIVITY_EXPLORER
-      - HST_AGENT
+  - host_group: "hdp-master2"
+    clients: []
+    services:
+      - NAMENODE
+      - HISTORYSERVER
+      - HIVE_SERVER
+      - HIVE_METASTORE
+      - WEBHCAT_SERVER
+      - MYSQL_SERVER
+  - host_group: "hdp-master3"
+    clients: []
+    services:
+      - SECONDARY_NAMENODE
+      - RESOURCEMANAGER
+      - APP_TIMELINE_SERVER
+      - SPARK2_JOBHISTORYSERVER
   - host_group: "hdp-data"
     clients: ['ZOOKEEPER_CLIENT', 'HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'HIVE_CLIENT', 'SPARK2_CLIENT']
     services:
       - DATANODE
       - NODEMANAGER
       - METRICS_MONITOR
-      - HST_AGENT
   - host_group: "hdp-yarn"
     clients: ['ZOOKEEPER_CLIENT', 'HDFS_CLIENT', 'YARN_CLIENT', 'MAPREDUCE2_CLIENT', 'TEZ_CLIENT', 'PIG', 'HIVE_CLIENT', 'SPARK2_CLIENT']
     services:
       - NODEMANAGER
       - METRICS_MONITOR
-      - HST_AGENT
 
 
 

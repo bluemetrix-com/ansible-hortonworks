@@ -7,7 +7,7 @@
   become: yes
 
 - import_playbook: "check_dynamic_blueprint.yml"
-  when: blueprint_file == 'blueprint_dynamic.j2'
+  when: blueprint_file.endswith('.j2')
 
 - name: Apply the ambari-config role to the ambari-server group
   hosts: ambari-server

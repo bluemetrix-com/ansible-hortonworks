@@ -20,7 +20,7 @@
           when: groups[item.host_group] is defined and groups[item.host_group]|length > 0 and 'AMBARI_SERVER' in item.services
           with_items: "{{ blueprint_dynamic }}"
           no_log: True
-      when: blueprint_file == 'blueprint_dynamic.j2'
+      when: blueprint_file.endswith('.j2')
 
     - block:
         - name: Set the blueprint path (relative to ambari-blueprint role)
@@ -48,7 +48,7 @@
           when: item | string is search("AMBARI_SERVER")
           with_items: "{{ blueprint_static['host_groups'] }}"
           no_log: True
-      when: blueprint_file != 'blueprint_dynamic.j2'
+      when: not blueprint_file.endswith('.j2')
 
     - name: Fail if the ambari_groups list is empty
       fail:
@@ -264,7 +264,7 @@
         - name: Set the install_hdp variable
           set_fact:
             install_hdp: True
-          when: namenode_groups|length > 0
+          when: namenode_groups|length > 0 or blueprint_file == 'blueprint_dynamic_3masters.j2'
 
         - name: Set the install_hdf variable
           set_fact:
@@ -275,7 +275,7 @@
           set_fact:
             install_hdpsearch: True
           when: solr_hosts|length > 0
-      when: blueprint_file == 'blueprint_dynamic.j2'
+      when: blueprint_file.endswith('.j2')
 
     - block:
         - name: Set the blueprint path (relative to ambari-blueprint role)
@@ -351,7 +351,7 @@
           set_fact:
             install_hdpsearch: True
           when: blueprint_static['host_groups'] | string is search("SOLR_SERVER")
-      when: blueprint_file != 'blueprint_dynamic.j2'
+      when: not blueprint_file.endswith('.j2')
 
 - name: Create the Ansible helper variables for all nodes
   hosts: hadoop-cluster
