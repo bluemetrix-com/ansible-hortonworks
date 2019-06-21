@@ -3,7 +3,9 @@ ansible-hortonworks
 
 These Ansible playbooks will build a Hortonworks cluster (Hortonworks Data Platform and / or Hortonworks DataFlow) using Ambari Blueprints. For a full list of supported features check [below](#features).
 
-- Tested with: HDP 3.0 -> 3.1, HDP 2.4 -> 2.6.5, HDP Search 3.0 -> 4.0, HDF 2.0 -> 3.4, Ambari 2.4 -> 2.7 (the versions must be matched as per the [support matrix](https://supportmatrix.hortonworks.com)).
+*This is a customized version for Hortonworks PS project 42710 and some features unused by that project may have been broken to support other features needed by the customer. Please use the [upstream project](https://github.com/hortonworks/ansible-hortonworks) instead.*
+
+- Tested with: HDP 2.6 and Google Cloud. For other environments please use the [upstream project](https://github.com/hortonworks/ansible-hortonworks).
 
 - This includes building the Cloud infrastructure (optional) and taking care of the prerequisites.
 
@@ -27,19 +29,18 @@ For a fully Hortonworks-supported and user friendly way of deploying Ambari-mana
 
 ## [Installation Instructions](id:instructions)
 
-- AWS: See [INSTALL.md](INSTALL_AWS.md) for AWS build instructions and cluster installation.
-- Azure: See [INSTALL.md](INSTALL_Azure.md) for Azure build instructions and cluster installation.
 - Google Compute Engine: See [INSTALL.md](INSTALL_GCE.md) for GCE build instructions and cluster installation.
-- OpenStack: See [INSTALL.md](INSTALL_OpenStack.md) for OpenStack build instructions and cluster installation.
 - Static inventory: See [INSTALL.md](INSTALL_static.md) for cluster installation on pre-built environments.
 
+For other environments please use the [upstream project](https://github.com/hortonworks/ansible-hortonworks).
 
 ## [Requirements](id:requirements)
 
 - Ansible 2.5+
 
-- Expects CentOS/RHEL, Ubuntu, Amazon Linux or SLES hosts
+- Expects CentOS/RHEL.
 
+For other environments please use the [upstream project](https://github.com/hortonworks/ansible-hortonworks).
 
 ## [Concepts](id:concepts)
 
@@ -48,7 +49,7 @@ This is an essential piece of Ambari Blueprints that maps the topology component
 
 The `host_groups` field in the [Ambari Blueprint](https://cwiki.apache.org/confluence/display/AMBARI/Blueprints#Blueprints-BlueprintFieldDescriptions) logically groups the components, while the `host_groups` field in the [Cluster Creation Template](https://cwiki.apache.org/confluence/display/AMBARI/Blueprints#Blueprints-ClusterCreationTemplateStructure) maps these logical groups to the actual servers that will run the components.
 
-Therefore, these Ansible playbooks try to take advantage of Blueprint's `host_groups` and map the Ansible inventory groups to the `host_groups` using a Jinja2 template: [cluster_template.j2](playbooks/roles/ambari-blueprint/templates/cluster_template.j2#L32).
+Therefore, these Ansible playbooks try to take advantage of Blueprint's `host_groups` and map the Ansible inventory groups to the `host_groups` using a Jinja2 template: [cluster\_template.j2](playbooks/roles/ambari-blueprint/templates/cluster_template.j2#L32).
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/5119993/43648111-699606a6-9731-11e8-8dcb-71c0c47f482a.png">
@@ -56,7 +57,11 @@ Therefore, these Ansible playbooks try to take advantage of Blueprint's `host_gr
 
 - If the blueprint is dynamic, these `host_groups` are defined in the [variable file](playbooks/group_vars/all#L162) and they need to match the Ansible inventory groups that will run those components.
 - If the blueprint is static, these `host_groups` are defined in the [blueprint itself](playbooks/roles/ambari-blueprint/files/blueprint_hdfs_only.json#L27) and they need to match the Ansible inventory groups that will run those components.
-
+- An [additional dynamic blueprint](playbooks/roles/ambari-blueprint/templates/blueprint_dynamic_3masters.j2) is included in this fork of Hortonworks' playbooks which defines four kinds of special host groups in the dynamic blueprint configuration: `hdp-common`, `hdp-master`, `hdp-master2` and `hdp-master3`. All these groups are matched against the hosts in the `hdp-master` group in Ansible the following way:
+  - The `hdp-common` role defines the components that are common to all the masters (like clients and monitors) and is merged to all the other master roles when creating the blueprint.
+  - If there are three or more `hdp-master` hosts, the first one is assigned the `hdp-master` role, the second one the `hdp-master2` one and the third one the `hdp-master3` one.
+  - If there are two master nodes, `hdp-master` and `hdp-master2` are merged and applied to the first master node and `hdp-master3` to the second one.
+  - If there is only one master node, all the `hdp-master*` roles are merged and applied to the same node
 
 ### Cloud inventory
 A special mention should be given when using a Cloud environment and / or a [dynamic Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_dynamic_inventory.html).
@@ -73,7 +78,9 @@ Then, using the Ansible dynamic inventory for the specific Cloud, the helper `ad
 
 ## [Parts](id:parts)
 
-Currently, these playbooks are divided into the following parts:
+This fork adds a new script `start.sh` that takes care of the whole process.
+
+The [upstream](https://github.com/hortonworks/ansible-hortonworks) process is divided into the following parts:
  
 1. **(Optional) Build the Cloud nodes**
 
@@ -130,7 +137,7 @@ Currently, these playbooks are divided into the following parts:
 - [x] Azure nodes
 - [ ] Azure Block Storage (VHDs)
 - [x] Google Compute Engine nodes (with root Persistent Disks only)
-- [ ] Google Compute Engine Block Storage (additional Persistent Disks)
+- [x] Google Compute Engine Block Storage (additional Persistent Disks)
 
 ### OS support
 - [x] CentOS/RHEL 6 support
@@ -153,7 +160,7 @@ Currently, these playbooks are divided into the following parts:
 - [x] Install and prepare MySQL
 - [x] Install and prepare PostgreSQL
 - [x] Install and configure local MIT KDC
-- [ ] Partition and mount additional storage
+- [x] Partition and mount additional storage
 
 ### Cluster build supported features
 - [x] Install Ambari Agents and Server
@@ -187,6 +194,6 @@ Currently, these playbooks are divided into the following parts:
 - [ ] NiFi SSL
 - [ ] NiFi AD integration
 - [ ] Basic memory settings tuning
-- [ ] Make use of additional storage for HDP workers
-- [ ] Make use of additional storage for master services
+- [x] Make use of additional storage for HDP workers
+- [x] Make use of additional storage for master services
 - [ ] Configure additional storage for NiFi
